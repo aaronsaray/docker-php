@@ -1,0 +1,41 @@
+name: Push New Image to Docker Registry
+
+on:
+  workflow_dispatch:
+    inputs:
+      image:
+        type: choice
+        required: true
+        description: Which image to build
+        options:
+          - "8.3"
+
+jobs:
+  build-and-push-image:
+    name: Build and Push Image
+    runs-on: ubuntu-24.04
+
+    steps:
+      - name: Code checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to Github Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ vars.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build and push 8.3
+        uses: docker/build-push-action@v6
+        with:
+          platforms: linux/amd64,linux/arm64
+          provenance: false
+          context: ./8.3
+          push: true
+          tags: |
+            aaronsaray/docker-php:8.3
+            aaronsaray/docker-php:latest
